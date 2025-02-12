@@ -1,5 +1,5 @@
 class MapSettings:
-
+    
     tile_size = 16
     """ The size of each tile in pixels """
 
@@ -11,4 +11,4 @@ class MapSettings:
 
     item_size = 7
     """ The size of the items on the map in pixels """
-
+    

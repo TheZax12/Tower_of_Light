@@ -1,7 +1,7 @@
 from gameMap.MapSettings import MapSettings
 
 
-class MapPosition:
+class MapPosition():
 
     def __init__(self, x_pixel, y_pixel):
         """
