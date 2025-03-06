@@ -8,8 +8,6 @@ class MapPosition:
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
-        self.x_tile = x * tile_size
-        self.y_tile = y * tile_size
 
     def get_x(self) -> int:
         return self.x
