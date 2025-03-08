@@ -8,6 +8,9 @@ from main.GameWindow import GameWindow
 from entities.Player import Player
 from gameMap.MapPosition import MapPosition
 from gameMap.MapCreation import MapCreation
+from items.ItemManager import ItemManager
+from items.usables.HealthPotion import HealthPotion
+from items.equipables.weapons.Weapon import Weapon
 
 
 pygame.init()
@@ -24,11 +27,15 @@ pygame.display.set_caption('Tower of Light')
 game_map = MapCreation()
 game_map.map_load(1)
 
-# Initialize player position
-player_pos = MapPosition(5, 48)
+# Items
+item_manager = ItemManager()
+potion = HealthPotion(MapPosition(8, 48))
+shword = Weapon(MapPosition(8, 48))
+item_manager.add_item(potion)
+item_manager.add_item(shword)
 
 # Initialize player
-player = Player(player_pos)
+player = Player(MapPosition(5, 48))
 player_start_tile_x, player_start_tile_y = player.get_position().x, player.get_position().y
 player_tile_x, player_tile_y = player_start_tile_x, player_start_tile_y
 player_rect = pygame.Rect(player_tile_x * tile_size, player_tile_y * tile_size, tile_size, tile_size)
@@ -54,14 +61,18 @@ while running:
 
     display_surface.fill(background_color)
 
-    # Update the visibility of the tiles
+    # Update the visibility
     game_map.tile_vilibility(player)
+    item_manager.item_visibility(player)
 
     # Draw the map
     game_map.draw_map(display_surface)
 
     # Draw the player
     pygame.draw.rect(display_surface, player_color, player_rect)
+
+    # Draw the items
+    item_manager.draw_item(display_surface)
 
     # Draw the grid
     game_map.draw_grid(display_surface)
