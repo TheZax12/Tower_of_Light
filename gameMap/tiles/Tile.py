@@ -11,6 +11,9 @@ class Tile:
         self.discovered = False
         self.visible = False
 
+    def set_position(self, positition: MapPosition):
+        self.position = positition
+    
     def get_position(self) -> MapPosition:
         return self.position
     
@@ -44,7 +47,7 @@ class Tile:
         from gameMap.tiles.types.WallTile import WallTile
         if tile_type == TileType.FLOOR: return FloorTile(position)
         if tile_type == TileType.WALL: return WallTile(position)
-
+        
     def chaos_to_light(self):
         pass
     

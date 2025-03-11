@@ -10,6 +10,9 @@ class FloorTile(Tile):
     def __init__(self, position: MapPosition):
         super().__init__(position)
         self.tile_type = TileType.FLOOR
-        self.invisible_color = chaos_floor_tile_invisible_color
-        self.visible_color = chaos_floor_tile_visible_color
+        self.set_visible_color(chaos_floor_tile_visible_color)
+        self.set_invisible_color(chaos_floor_tile_invisible_color)
         
+    def chaos_to_light(self):
+        self.set_visible_color(light_floor_tile_visible_color)
+        self.set_invisible_color(light_floor_tile_invisible_color)

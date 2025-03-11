@@ -1,19 +1,30 @@
 import pygame
+from sys import maxsize
 
-from main.GameWindow import GameWindow
-from entities.Player import Player
 from gameMap.tiles.TileType import TileType
 from gameMap.tiles.Tile import Tile
+from gameMap.tiles.decorators.BeaconTile import BeaconTile
+from gameMap.tiles.decorators.ExitTile import ExitTile
 from gameMap.MapPosition import MapPosition
 
 from gameMap.MapSettings import *
 from UI.Colors import *
 
 
-class MapCreation:
+class TileManager:
 
     def __init__(self):
         self.map_tiles = [[Tile(None) for _ in range(map_width)] for _ in range(map_height)]
+        self.beacon_tiles = []
+
+        self.max_beacon_number = 3
+        self.min_beacon_distance = 15
+
+    def set_tile(self, position: MapPosition, tile: Tile):
+        self.map_tiles[position.y][position.x] = tile
+
+    def get_tile(self, position: MapPosition) -> Tile:
+        return self.map_tiles[position.y][position.x]
         
     def map_load(self, level_number):
         file_path = "gameMap/levels/level_" + str(level_number) + ".txt"
@@ -27,7 +38,29 @@ class MapCreation:
                 tile_type = TileType.int_to_tile(int(col))
                 self.map_tiles[row_index][col_index] = Tile.create_tile(tile_type, MapPosition(col_index, row_index))
 
-    def tile_vilibility(self, player: Player):
+    def beacons_min_distance(self, position: MapPosition):
+        return min((position.distance(beacon.get_position()) for beacon in self.beacon_tiles), default=maxsize)
+    
+    def add_beacon(self, position: MapPosition):
+        if len(self.beacon_tiles) >= self.max_beacon_number:
+            print("No more beacons can be placed")
+        beacon = BeaconTile(position)
+        self.set_tile(beacon.get_position(), beacon)
+        self.beacon_tiles.append(beacon)
+
+        if len(self.beacon_tiles) == self.max_beacon_number:
+            self.convert_to_light()
+            
+    def convert_to_light(self):
+        exit = ExitTile(northeast)
+        self.set_tile(exit.get_position(), exit)
+
+        for row in self.map_tiles:
+            for tile in row:
+                tile.set_discovered(True)
+                tile.chaos_to_light()
+
+    def tile_vilibility(self, player):
         for row in self.map_tiles:
             for tile in row:
                 distance_to_tile = tile.position.distance(player.get_position())
@@ -47,10 +80,9 @@ class MapCreation:
                     pygame.draw.rect(display_surface, tile.visible_color, (tile.position.x * tile_size, tile.position.y * tile_size, tile_size, tile_size))
                 else:
                     pygame.draw.rect(display_surface, tile.invisible_color, (tile.position.x * tile_size, tile.position.y * tile_size, tile_size, tile_size))
+                
+                pygame.draw.rect(display_surface, (0, 0, 0), (tile.position.x * tile_size, tile.position.y * tile_size, tile_size, tile_size), 1)
 
-        
-    def draw_grid(self, display_surface):
-        for x in range(0, GameWindow.screen_width + tile_size, tile_size):
-            pygame.draw.line(display_surface, grid_color, (x, 0), (x, GameWindow.screen_height))
-        for y in range(0, GameWindow.screen_height + tile_size, tile_size):
-            pygame.draw.line(display_surface, grid_color, (0, y), (GameWindow.screen_width, y))
+    def reset(self):
+        self.beacon_tiles = []
+        self.tile_vilibility()

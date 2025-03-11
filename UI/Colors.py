@@ -22,11 +22,11 @@ chaos_floor_tile_visible_color = '#9ca3af'
 chaos_floor_tile_invisible_color = '#6b7280'
 """ Grey 500 """
 
-light_wall_tile_visible_color = '#713f12'
-""" Yellow 900 """
+light_wall_tile_visible_color = '#78350f'
+""" Amber 900 """
 
-light_wall_tile_invisible_color = '#422006'
-""" Yellow 950 """
+light_wall_tile_invisible_color = '#451a03'
+""" Amber 950 """
 
 light_floor_tile_visible_color = '#a16207'
 """ Yellow 700 """
