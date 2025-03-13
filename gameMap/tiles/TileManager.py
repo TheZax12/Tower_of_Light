@@ -17,6 +17,7 @@ class TileManager:
         self.map_tiles = [[Tile(None) for _ in range(map_width)] for _ in range(map_height)]
         self.beacon_tiles = []
 
+        self.level_number = 1
         self.max_beacon_number = 3
         self.min_beacon_distance = 15
 
@@ -25,9 +26,15 @@ class TileManager:
 
     def get_tile(self, position: MapPosition) -> Tile:
         return self.map_tiles[position.y][position.x]
+    
+    def set_level_number(self, level_number):
+        self.level_number = level_number
+
+    def get_level_number(self):
+        return self.level_number
         
-    def map_load(self, level_number):
-        file_path = "gameMap/levels/level_" + str(level_number) + ".txt"
+    def map_load(self):
+        file_path = "gameMap/levels/level_" + str(self.get_level_number()) + ".txt"
         
         with open(file_path, "r") as file:
             level_data = file.readlines()
@@ -43,7 +50,7 @@ class TileManager:
     
     def add_beacon(self, position: MapPosition):
         if len(self.beacon_tiles) >= self.max_beacon_number:
-            print("No more beacons can be placed")
+            return
         beacon = BeaconTile(position)
         self.set_tile(beacon.get_position(), beacon)
         self.beacon_tiles.append(beacon)
@@ -59,6 +66,13 @@ class TileManager:
             for tile in row:
                 tile.set_discovered(True)
                 tile.chaos_to_light()
+
+    def advance_level(self, player):
+            curernt_tile = self.get_tile(player.get_position())
+            if isinstance(curernt_tile, ExitTile):
+                self.set_level_number(self.get_level_number() + 1)
+                self.reset()
+                player.reset()
 
     def tile_vilibility(self, player):
         for row in self.map_tiles:
@@ -84,5 +98,5 @@ class TileManager:
                 pygame.draw.rect(display_surface, (0, 0, 0), (tile.position.x * tile_size, tile.position.y * tile_size, tile_size, tile_size), 1)
 
     def reset(self):
+        self.map_load()
         self.beacon_tiles = []
-        self.tile_vilibility()

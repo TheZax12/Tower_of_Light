@@ -4,8 +4,11 @@ from __future__ import annotations
 class MapPosition:
     
     def __init__(self, x: int, y: int):
+        from gameMap.MapSettings import tile_size
         self.x = x
         self.y = y
+        self.tile_x = x * tile_size
+        self.tile_y = y * tile_size
 
     def get_x(self) -> int:
         return self.x
@@ -13,6 +16,12 @@ class MapPosition:
     def get_y(self) -> int:
         return self.y
     
+    def get_tile_x(self) -> int:
+        return self.tile_x
+
+    def get_tile_y(self) -> int:
+        return self.tile_y
+
     def distance(self, other: MapPosition) -> int:
         return abs(self.x - other.x) + abs(self.y - other.y)
     
