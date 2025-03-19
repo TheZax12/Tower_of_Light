@@ -1,3 +1,9 @@
+text_base_color = '#fcd34d'
+""" Amber 300 """
+
+text_hovering_color = '#eab308'
+""" Yellow 500 """
+
 background_color = '#fafafa'
 """ Natural 50 """
 

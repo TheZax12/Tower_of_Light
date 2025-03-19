@@ -15,6 +15,36 @@ class Player(Entity):
         self.rect = pygame.Rect(self.get_position().x * tile_size, 
                                 self.get_position().y * tile_size, 
                                 tile_size, tile_size)
+        
+    def set_level(self, level: int):
+        self.level = level
+
+    def get_level(self) -> int:
+        return self.level
+    
+    def set_manapoints(self, manapoints: int):
+        self.manapoints = manapoints
+
+    def get_manapoints(self) -> int:
+        return self.manapoints
+    
+    def set_max_manapoints(self, max_manapoints: int):
+        self.max_manapoints = max_manapoints
+
+    def get_max_manapoints(self) -> int:
+        return self.max_manapoints
+    
+    def set_strength(self, strength: int):
+        self.strength = strength
+
+    def get_strength(self) -> int:
+        return self.strength
+    
+    def set_intelect(self, intellect: int):
+        self.intellect = intellect
+
+    def get_intellect(self) -> int:
+        return self.intellect
 
     def update_rect(self):
         self.rect.topleft = (self.get_position().x * tile_size, self.get_position().y * tile_size)

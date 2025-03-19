@@ -16,6 +16,18 @@ class Entity():
 
     def get_position(self) -> MapPosition:
         return self.position
+    
+    def set_hitpoints(self, hitpoints: int):
+        self.hitpoints = hitpoints
+
+    def get_hitpoints(self) -> int:
+        return self.hitpoints
+    
+    def set_max_hitpoints(self, max_hitpoints: int):
+        self.max_hitpoints = max_hitpoints
+
+    def get_max_hitpoints(self) -> int:
+        return self.max_hitpoints
 
     def check_collision(self, new_rect, tiles):
         for row in tiles:

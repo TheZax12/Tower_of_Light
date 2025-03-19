@@ -6,6 +6,7 @@ from gameMap.tiles.Tile import Tile
 from gameMap.tiles.decorators.BeaconTile import BeaconTile
 from gameMap.tiles.decorators.ExitTile import ExitTile
 from gameMap.MapPosition import MapPosition
+from panels.EndScreen import EndScreen
 
 from gameMap.MapSettings import *
 from UI.Colors import *
@@ -17,7 +18,8 @@ class TileManager:
         self.map_tiles = [[Tile(None) for _ in range(map_width)] for _ in range(map_height)]
         self.beacon_tiles = []
 
-        self.level_number = 1
+        self.level_number = 6
+        self.max_level_number = 6
         self.max_beacon_number = 3
         self.min_beacon_distance = 15
 
@@ -67,12 +69,17 @@ class TileManager:
                 tile.set_discovered(True)
                 tile.chaos_to_light()
 
-    def advance_level(self, player):
+    def advance_level(self, player, display_surface, main_menu_callback):
             curernt_tile = self.get_tile(player.get_position())
             if isinstance(curernt_tile, ExitTile):
-                self.set_level_number(self.get_level_number() + 1)
-                self.reset()
-                player.reset()
+                if self.get_level_number() < self.max_level_number:
+                    self.set_level_number(self.get_level_number() + 1)
+                    self.reset()
+                    player.reset()
+                else:
+                    EndScreen().winning_screen(display_surface, main_menu_callback)
+                    return True
+            return False
 
     def tile_vilibility(self, player):
         for row in self.map_tiles:

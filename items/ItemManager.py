@@ -1,6 +1,6 @@
 import pygame
 
-from entities.Player import Player
+from entities.player.Player import Player
 from items.equipables.EquipableItem import EquipableItem
 from items.usables.UsableItem import UsableItem
 
