@@ -9,8 +9,11 @@ screen_width = map_width * tile_size
 screen_height = map_height * tile_size
 """ The height of the game window """
 
-log_size = 400
-""" The size of the log panel """
+log_width = 400
+""" The width of the log panel """
+
+log_height = screen_height
+""" The height of the log panel """
 
 def get_font(size):
     return pygame.font.Font("assets/Grand9K_Pixel.ttf", size)

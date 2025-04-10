@@ -2,7 +2,7 @@ import pygame
 from sys import exit
 
 from panels.MainMenu import MainMenu
-from panels.GameWindow import GameWindow
+from panels.GamePanel import GamePanel
 
 from panels.PanelSettings import *
 from gameMap.MapSettings import *
@@ -12,13 +12,10 @@ from UI.Colors import *
 pygame.init()
 
 
-game_window = GameWindow()
-game_window.create_display_surface()
-game_window.set_caption("Tower of Light")
-
-display_surface = game_window.get_display_surface()
+game_window = GamePanel()
 
 game_active = True
+
 while game_active:
     events = pygame.event.get()
     for event in events:
@@ -26,5 +23,5 @@ while game_active:
             game_active = False
             pygame.quit()
             exit()
-    
-    MainMenu.create_main_menu(display_surface, events, game_window.play_game)
+
+    MainMenu.create_main_menu(game_window.display_surface, events, game_window.play)

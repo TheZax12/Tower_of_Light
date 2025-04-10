@@ -7,6 +7,7 @@ from gameMap.tiles.decorators.BeaconTile import BeaconTile
 from gameMap.tiles.decorators.ExitTile import ExitTile
 from gameMap.MapPosition import MapPosition
 from panels.EndScreen import EndScreen
+from log.LogSubject import LogSubject
 
 from gameMap.MapSettings import *
 from UI.Colors import *
@@ -18,7 +19,7 @@ class TileManager:
         self.map_tiles = [[Tile(None) for _ in range(map_width)] for _ in range(map_height)]
         self.beacon_tiles = []
 
-        self.level_number = 6
+        self.level_number = 1
         self.max_level_number = 6
         self.max_beacon_number = 3
         self.min_beacon_distance = 15
@@ -51,11 +52,15 @@ class TileManager:
         return min((position.distance(beacon.get_position()) for beacon in self.beacon_tiles), default=maxsize)
     
     def add_beacon(self, position: MapPosition):
+        log_subject = LogSubject()
+
         if len(self.beacon_tiles) >= self.max_beacon_number:
             return
         beacon = BeaconTile(position)
         self.set_tile(beacon.get_position(), beacon)
         self.beacon_tiles.append(beacon)
+
+        log_subject.notify_log_observer(f"Beacon {len(self.beacon_tiles)}/{self.max_beacon_number} created.")
 
         if len(self.beacon_tiles) == self.max_beacon_number:
             self.convert_to_light()

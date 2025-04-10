@@ -3,6 +3,7 @@ import pygame
 from entities.Entity import Entity
 from gameMap.tiles.TileManager import TileManager
 from gameMap.MapPosition import MapPosition
+from log.LogSubject import LogSubject
 
 from gameMap.MapSettings import *
 
@@ -68,12 +69,18 @@ class Player(Entity):
             self.update_rect()
 
     def actions(self, event, tile_manager: TileManager):
+        log_subject = LogSubject()
+        
         min_distance = tile_manager.beacons_min_distance(self.get_position())
+
         if event.key == pygame.K_l:
-            if min_distance >= tile_manager.min_beacon_distance:
-                tile_manager.add_beacon(self.get_position())
+            if len(tile_manager.beacon_tiles) < tile_manager.max_beacon_number:
+                if min_distance >= tile_manager.min_beacon_distance:
+                        tile_manager.add_beacon(self.get_position())
+                else:
+                        log_subject.notify_log_observer("Too close to another beacon.")
             else:
-                print("Too close to another beacon")
+                log_subject.notify_log_observer("Maximum number of beacons reached.")
 
     def reset(self):
         self.set_position(southwest)

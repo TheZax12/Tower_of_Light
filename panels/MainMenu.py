@@ -17,16 +17,6 @@ class MainMenu:
 
         mouse_position = pygame.mouse.get_pos()
 
-        # # Render the shadow text
-        # menu_text_shadow = get_font(70).render("Main Menu", True, (0, 0, 0))
-        # menu_rect_shadow = menu_text_shadow.get_rect(center=(643, 83))
-        # display_surface.blit(menu_text_shadow, menu_rect_shadow)
-
-        # # Render the main text
-        # menu_text = get_font(70).render("Main Menu", True, button_base_color)
-        # menu_rect = menu_text.get_rect(center=(640, 80))
-        # display_surface.blit(menu_text, menu_rect)
-
         start_text = get_font(30).render("Press space to enter the castle", True, text_base_color)
         start_rect = start_text.get_rect(center=(620, 780))
         display_surface.blit(start_text, start_rect)
