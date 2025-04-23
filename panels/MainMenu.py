@@ -12,19 +12,16 @@ from UI.Colors import *
 class MainMenu:
     
     @staticmethod
-    def create_main_menu(display_surface, events, start_game_callback):
+    def create_main_menu(display_surface: pygame.Surface, start_game_callback, events):
         display_surface.blit(pygame.image.load("assets/background.png"), (0, 0))
 
         mouse_position = pygame.mouse.get_pos()
 
-        start_text = get_font(30).render("Press space to enter the castle", True, text_base_color)
-        start_rect = start_text.get_rect(center=(620, 780))
-        display_surface.blit(start_text, start_rect)
+        start_button = Button(MapPosition(display_surface.get_width() // 2, 780), None, "Enter the Tower", get_pixel_font(30), text_base_color, text_hovering_color)
+        controls_button = Button(MapPosition(display_surface.get_width() // 2 - 500, 780), None, "Controls", get_pixel_font(30), text_base_color, text_hovering_color)
+        quit_button = Button(MapPosition(display_surface.get_width() // 2 + 530, 780), None, "Quit", get_pixel_font(30), text_base_color, text_hovering_color)
 
-        controls_button = Button(MapPosition(120, 780), None, "Controls", get_font(30), text_base_color, text_hovering_color)
-        quit_button = Button(MapPosition(1150, 780), None, "Quit", get_font(30), text_base_color, text_hovering_color)
-
-        buttons = [controls_button, quit_button]
+        buttons = [start_button, controls_button, quit_button]
 
         for button in buttons:
             button.change_color(mouse_position)
@@ -32,13 +29,13 @@ class MainMenu:
 
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if controls_button.check_for_input(mouse_position):
+                if start_button.check_for_input(mouse_position):
+                    start_game_callback()
+                    return
+                elif controls_button.check_for_input(mouse_position):
                     return "controls"
                 elif quit_button.check_for_input(mouse_position):
                     pygame.quit()
                     exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    start_game_callback()
                 
         pygame.display.update()

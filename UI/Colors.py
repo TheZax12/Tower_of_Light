@@ -4,6 +4,9 @@ text_base_color = '#fcd34d'
 text_hovering_color = '#eab308'
 """ Yellow 500 """
 
+text_highlight_color = '#9ca3af'
+""" Gray 400 """
+
 background_color = '#fafafa'
 """ Natural 50 """
 

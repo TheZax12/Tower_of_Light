@@ -1,5 +1,6 @@
 from gameMap.MapPosition import MapPosition
 
+
 class Item:
 
     def __init__(self, position: MapPosition):
@@ -7,13 +8,17 @@ class Item:
         self.discovered = False
         self.visible = False
 
+        self.item_effects = []
+        self.effect_type = None
+        self.effect_value = None
+        
     def get_position(self) -> MapPosition:
         return self.position
     
     def set_discovered(self, discovered: bool):
         self.discovered = discovered
 
-    def is_discorvered(self) -> bool:
+    def is_discovered(self) -> bool:
         return self.discovered
     
     def set_visible(self, visible: bool):

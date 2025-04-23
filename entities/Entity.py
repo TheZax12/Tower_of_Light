@@ -28,6 +28,24 @@ class Entity():
 
     def get_max_hitpoints(self) -> int:
         return self.max_hitpoints
+    
+    def set_swing_defence(self, swing_defence: int):
+        self.swing_defence = swing_defence
+
+    def get_swing_defence(self) -> int:
+        return self.swing_defence
+    
+    def set_thrust_defence(self, thrust_defence: int):
+        self.thrust_defence = thrust_defence
+
+    def get_thrust_defence(self) -> int:
+        return self.thrust_defence
+    
+    def set_magic_defence(self, magic_defence: int):
+        self.magic_defence = magic_defence
+    
+    def get_magic_defence(self) -> int:
+        return self.magic_defence
 
     def check_collision(self, new_rect, tiles):
         for row in tiles:

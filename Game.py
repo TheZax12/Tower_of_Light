@@ -15,7 +15,6 @@ pygame.init()
 game_window = GamePanel()
 
 game_active = True
-
 while game_active:
     events = pygame.event.get()
     for event in events:
@@ -24,4 +23,4 @@ while game_active:
             pygame.quit()
             exit()
 
-    MainMenu.create_main_menu(game_window.display_surface, events, game_window.play)
+    MainMenu.create_main_menu(game_window.display_surface, game_window.play, events)

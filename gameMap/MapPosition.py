@@ -10,6 +10,14 @@ class MapPosition:
         self.tile_x = x * tile_size
         self.tile_y = y * tile_size
 
+    def __eq__(self, other):
+        if not isinstance(other, MapPosition):
+            return NotImplemented
+        return self.x == other.x and self.y == other.y
+    
+    def __hash__(self):
+        return hash((self.x, self.y))
+    
     def get_x(self) -> int:
         return self.x
     

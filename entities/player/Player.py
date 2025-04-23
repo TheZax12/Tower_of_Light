@@ -1,7 +1,10 @@
 import pygame
 
 from entities.Entity import Entity
+from entities.player.races.Race import Race
+from entities.player.races.warriors.Warrior import Warrior
 from gameMap.tiles.TileManager import TileManager
+from items.Item import Item
 from gameMap.MapPosition import MapPosition
 from log.LogSubject import LogSubject
 
@@ -10,13 +13,23 @@ from gameMap.MapSettings import *
 
 class Player(Entity):
 
-    def __init__(self, position: MapPosition):
+    def __init__(self, position: MapPosition, race: Race, warrior: Warrior):
         super().__init__(position)
         self.visibility_radius = 6
         self.rect = pygame.Rect(self.get_position().x * tile_size, 
                                 self.get_position().y * tile_size, 
                                 tile_size, tile_size)
         
+        self.race = race
+        self.warrior = warrior
+
+        self.name = self.race.get_race() + " " + self.warrior.get_warrior()
+
+        self.restart()
+        
+    def get_name(self) -> str:
+        return self.name
+    
     def set_level(self, level: int):
         self.level = level
 
@@ -45,7 +58,29 @@ class Player(Entity):
         self.intellect = intellect
 
     def get_intellect(self) -> int:
-        return self.intellect
+        return self.intellect        
+    
+    def player_stats(self):
+        return (
+            f"Name: {self.get_name()}\n\n"
+            f"Level: {self.get_level()}\n\n"
+            f"Hitpoints: {self.get_max_hitpoints()}\n"
+            f"Manapoints: {self.get_max_manapoints()}\n\n"
+            f"Strength: {self.get_strength()}\n"
+            f"Intellect: {self.get_intellect()}\n\n"
+            f"Swing Defence: {self.get_swing_defence()}\n"
+            f"Thrust Defence: {self.get_thrust_defence()}\n"
+            f"Magic Defence: {self.get_magic_defence()}\n"
+        )
+    
+    def item_effect_on_player(self, item: Item):
+        match item.effect_type:
+            case "health replenishment":
+                updated_stat = self.get_health() + item.effect_value
+                self.set_hitpoints(min(updated_stat, self.get_max_hitpoints()))
+            case "mana replenishment":
+                updated_stat = self.get_manapoints() + item.effect_value
+                self.set_manapoints(min(updated_stat, self.get_max_manapoints()))
 
     def update_rect(self):
         self.rect.topleft = (self.get_position().x * tile_size, self.get_position().y * tile_size)
@@ -82,6 +117,19 @@ class Player(Entity):
             else:
                 log_subject.notify_log_observer("Maximum number of beacons reached.")
 
-    def reset(self):
+    def reset_pos(self):
         self.set_position(southwest)
         self.update_rect()
+
+    def reset_stats(self):
+        self.set_level(1)
+        self.set_max_hitpoints(0)
+        self.set_max_manapoints(0)
+        self.race.init_stats(self)
+        self.warrior.update_stats(self)
+        self.set_hitpoints(self.get_max_hitpoints())
+        self.set_manapoints(self.get_max_manapoints())
+
+    def restart(self):
+        self.reset_pos()
+        self.reset_stats()

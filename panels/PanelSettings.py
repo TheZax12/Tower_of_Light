@@ -15,5 +15,5 @@ log_width = 400
 log_height = screen_height
 """ The height of the log panel """
 
-def get_font(size):
+def get_pixel_font(size):
     return pygame.font.Font("assets/Grand9K_Pixel.ttf", size)
