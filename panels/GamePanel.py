@@ -45,9 +45,11 @@ class GamePanel:
 
         item_manager = ItemManager()
         healing_potion_1 = HealthPotion(MapPosition(8, 48))
-        healing_potion_2 = HealthPotion(MapPosition(10, 45))
+        # healing_potion_2 = HealthPotion(MapPosition(10, 45))
+        # mana_potion_1 = ManaPotion(MapPosition(9, 46))
         item_manager.create_item(healing_potion_1)
-        item_manager.create_item(healing_potion_2)
+        # item_manager.create_item(healing_potion_2)
+        # item_manager.create_item(mana_potion_1)
 
         clock = pygame.time.Clock()
 
@@ -55,18 +57,14 @@ class GamePanel:
         while running:
             events = pygame.event.get()
             
-            player_moved = False
             for event in events:
                 if event.type == pygame.QUIT:
                     running = False
                     pygame.quit()
                     exit()
                 if event.type == pygame.KEYDOWN:
-                    old_pos = player.get_position()
                     player.motion(event, map_width, map_height, game_map.map_tiles)
-                    player.actions(event, game_map)
-                    if player.get_position() != old_pos:
-                        player_moved = True
+                    player.actions(event, game_map, healing_potion_1, inventory)
 
 
             item_manager.check_for_pickups(player, inventory)

@@ -4,7 +4,8 @@ from entities.Entity import Entity
 from entities.player.races.Race import Race
 from entities.player.races.warriors.Warrior import Warrior
 from gameMap.tiles.TileManager import TileManager
-from items.Item import Item
+from items.usables.UsableItem import UsableItem
+from entities.player.Inventory import Inventory
 from gameMap.MapPosition import MapPosition
 from log.LogSubject import LogSubject
 
@@ -14,6 +15,8 @@ from gameMap.MapSettings import *
 class Player(Entity):
 
     def __init__(self, position: MapPosition, race: Race, warrior: Warrior):
+        self.log_subject = LogSubject()
+        
         super().__init__(position)
         self.visibility_radius = 6
         self.rect = pygame.Rect(self.get_position().x * tile_size, 
@@ -64,23 +67,52 @@ class Player(Entity):
         return (
             f"Name: {self.get_name()}\n\n"
             f"Level: {self.get_level()}\n\n"
-            f"Hitpoints: {self.get_max_hitpoints()}\n"
-            f"Manapoints: {self.get_max_manapoints()}\n\n"
+            f"Hitpoints: {self.get_hitpoints()}/{self.get_max_hitpoints()}\n"
+            f"Manapoints: {self.get_manapoints()}/{self.get_max_manapoints()}\n\n"
             f"Strength: {self.get_strength()}\n"
             f"Intellect: {self.get_intellect()}\n\n"
             f"Swing Defence: {self.get_swing_defence()}\n"
             f"Thrust Defence: {self.get_thrust_defence()}\n"
             f"Magic Defence: {self.get_magic_defence()}\n"
         )
-    
-    def item_effect_on_player(self, item: Item):
-        match item.effect_type:
-            case "health replenishment":
-                updated_stat = self.get_health() + item.effect_value
+
+    def item_effect_on_player(self, item_name, effect_value):
+        match item_name:
+            case "healing potion":
+                updated_stat = self.get_hitpoints() + effect_value
                 self.set_hitpoints(min(updated_stat, self.get_max_hitpoints()))
-            case "mana replenishment":
-                updated_stat = self.get_manapoints() + item.effect_value
+            case "mana potion":
+                updated_stat = self.get_manapoints() + effect_value
                 self.set_manapoints(min(updated_stat, self.get_max_manapoints()))
+
+    
+    def consume_usable_item(self, usable_item: UsableItem, inventory: Inventory):
+        for effect_value in usable_item.use():
+            self.item_effect_on_player(usable_item.item_name(), effect_value)
+
+        inventory.remove_item(usable_item)
+
+    def consume_healing_potion(self, usable_item: UsableItem, inventory: Inventory):
+        if usable_item.get_uses_number() == 0:
+            self.log_subject.notify_log_observer("No healing potions left.")
+            return
+        
+        if self.get_hitpoints() == self.get_max_hitpoints():
+            self.log_subject.notify_log_observer("Cannot use healing potion. Hitpoints are already full.")
+            return
+        
+        self.consume_usable_item(usable_item, inventory)
+
+    def consume_mana_potion(self, usable_item: UsableItem, inventory: Inventory):
+        if usable_item.get_uses_number() == 0:
+            self.log_subject.notify_log_observer("No mana potions left.")
+            return
+        
+        if self.get_manapoints() == self.get_max_manapoints():
+            self.log_subject.notify_log_observer("Cannot use mana potion. Manapoints are already full.")
+            return
+
+        self.consume_usable_item(usable_item, inventory)
 
     def update_rect(self):
         self.rect.topleft = (self.get_position().x * tile_size, self.get_position().y * tile_size)
@@ -103,9 +135,7 @@ class Player(Entity):
             self.set_position(MapPosition(new_tile_x, new_tile_y))
             self.update_rect()
 
-    def actions(self, event, tile_manager: TileManager):
-        log_subject = LogSubject()
-        
+    def actions(self, event, tile_manager: TileManager, usable_item: UsableItem, inventory: Inventory):
         min_distance = tile_manager.beacons_min_distance(self.get_position())
 
         if event.key == pygame.K_l:
@@ -113,9 +143,14 @@ class Player(Entity):
                 if min_distance >= tile_manager.min_beacon_distance:
                         tile_manager.add_beacon(self.get_position())
                 else:
-                        log_subject.notify_log_observer("Too close to another beacon.")
+                        self.log_subject.notify_log_observer("Too close to another beacon.")
             else:
-                log_subject.notify_log_observer("Maximum number of beacons reached.")
+                self.log_subject.notify_log_observer("Maximum number of beacons reached.")
+
+        if event.key == pygame.K_h:
+            self.consume_healing_potion(usable_item, inventory)
+        if event.key == pygame.K_m:
+            self.consume_mana_potion(usable_item, inventory)
 
     def reset_pos(self):
         self.set_position(southwest)
