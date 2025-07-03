@@ -9,7 +9,10 @@ class Inventory:
         self.healing_potion_inventory = []
         self.mana_potion_inventory = []
 
-    def add_item(self, usable_item):        
+    def get_all_items(self):
+        return self.healing_potion_inventory + self.mana_potion_inventory
+
+    def add_item(self, usable_item):
         if isinstance(usable_item, HealthPotion): 
             self.healing_potion_inventory.append(usable_item)
             # usable_item.set_uses_number(usable_item.get_uses_number() + usable_item.init_uses_number())
@@ -17,12 +20,12 @@ class Inventory:
             self.mana_potion_inventory.append(usable_item)
             # usable_item.set_uses_number(usable_item.get_uses_number() + usable_item.init_uses_number())
 
-    def remove_item(self, usable_item):
+    def remove_item(self, usable_item: UsableItem):
         if usable_item.get_uses_number() == 0:
             if isinstance(usable_item, HealthPotion):
                 self.healing_potion_inventory.remove(usable_item)
             elif isinstance(usable_item, ManaPotion):
-                self.healing_potion_inventory.remove(usable_item)
+                self.mana_potion_inventory.remove(usable_item)
 
     def inventory_contents(self):
         healing_potion_uses = sum(item.get_uses_number() for item in self.healing_potion_inventory)

@@ -5,6 +5,9 @@ from entities.player.races.Race import Race
 from entities.player.races.warriors.Warrior import Warrior
 from gameMap.tiles.TileManager import TileManager
 from items.usables.UsableItem import UsableItem
+from items.equipables.weapons.Weapon import Weapon
+from items.ItemEffect import ItemEffect
+from items.ItemEffect import ItemEffectType
 from entities.player.Inventory import Inventory
 from gameMap.MapPosition import MapPosition
 from log.LogSubject import LogSubject
@@ -61,7 +64,13 @@ class Player(Entity):
         self.intellect = intellect
 
     def get_intellect(self) -> int:
-        return self.intellect        
+        return self.intellect
+    
+    def set_off_hand(self, off_hand: Weapon):
+        self.off_hand = off_hand
+
+    def get_off_hand(self) -> Weapon:
+        return self.off_hand
     
     def player_stats(self):
         return (
@@ -76,19 +85,19 @@ class Player(Entity):
             f"Magic Defence: {self.get_magic_defence()}\n"
         )
 
-    def item_effect_on_player(self, item_name, effect_value):
-        match item_name:
-            case "healing potion":
-                updated_stat = self.get_hitpoints() + effect_value
+    def item_effect_on_player(self, item_effect: ItemEffect):
+        match item_effect.effect_type:
+            case ItemEffectType.HP_REPLENISHMENT:
+                updated_stat = self.get_hitpoints() + item_effect.stat_enhancement
                 self.set_hitpoints(min(updated_stat, self.get_max_hitpoints()))
-            case "mana potion":
-                updated_stat = self.get_manapoints() + effect_value
+            case ItemEffectType.MP_REPLENISHMENT:
+                updated_stat = self.get_manapoints() + item_effect.stat_enhancement
                 self.set_manapoints(min(updated_stat, self.get_max_manapoints()))
 
     
     def consume_usable_item(self, usable_item: UsableItem, inventory: Inventory):
-        for effect_value in usable_item.use():
-            self.item_effect_on_player(usable_item.item_name(), effect_value)
+        for item_effect in usable_item.use():
+            self.item_effect_on_player(item_effect)
 
         inventory.remove_item(usable_item)
 
@@ -114,6 +123,26 @@ class Player(Entity):
 
         self.consume_usable_item(usable_item, inventory)
 
+    def stat_replenish(self, current_stat, max_stat, replenish_factor):
+        replenish = round(max_stat * replenish_factor)
+        if replenish == 0:
+            replenish = 1
+        
+        replenished_stat = current_stat + replenish
+        return replenished_stat
+
+    def execute_rest(self):
+        if self.get_hitpoints() < self.get_max_hitpoints() or self.get_manapoints() < self.get_max_manapoints():
+            self.log_subject.notify_log_observer("Resting...")
+            if self.get_hitpoints() < self.get_max_hitpoints():
+                hitpoints_replenish = self.stat_replenish(self.get_hitpoints(), self.get_max_hitpoints(), 0.05)
+                self.set_hitpoints(min(hitpoints_replenish, self.get_max_hitpoints()))
+                self.log_subject.notify_log_observer(f"Gained {hitpoints_replenish - self.get_hitpoints()} health points.")
+            elif self.get_manapoints() < self.get_max_manapoints():
+                manapoints_replenish = self.stat_replenish(self.get_manapoints(), self.get_max_manapoints(), 0.05)
+                self.set_manapoints(min(manapoints_replenish, self.get_max_manapoints()))
+                self.log_subject.notify_log_observer(f"Gained {manapoints_replenish - self.get_manapoints()} mana points.")
+
     def update_rect(self):
         self.rect.topleft = (self.get_position().x * tile_size, self.get_position().y * tile_size)
 
@@ -136,14 +165,22 @@ class Player(Entity):
             self.update_rect()
 
     def actions(self, event, tile_manager: TileManager, usable_item: UsableItem, inventory: Inventory):
-        min_distance = tile_manager.beacons_min_distance(self.get_position())
+        beacon_distance = tile_manager.beacons_min_distance(self.get_position())
+        beacon_player_spawn_min_distance = tile_manager.min_player_spawn_beacon_distance(self.get_position())
 
         if event.key == pygame.K_l:
             if len(tile_manager.beacon_tiles) < tile_manager.max_beacon_number:
-                if min_distance >= tile_manager.min_beacon_distance:
-                        tile_manager.add_beacon(self.get_position())
+                if beacon_distance < tile_manager.min_beacon_distance:
+                    self.log_subject.notify_log_observer("Cannot place a beacon here. It's too close to another beacon.")
+                    return
+                elif beacon_player_spawn_min_distance < tile_manager.min_beacon_distance:
+                    self.log_subject.notify_log_observer("Cannot place a beacon here. It's too close to the player spawn.")
+                    return
+                elif self.get_position() == exit_spawn:
+                    self.log_subject.notify_log_observer("Cannot place a beacon on the exit tile.")
+                    return
                 else:
-                        self.log_subject.notify_log_observer("Too close to another beacon.")
+                    tile_manager.add_beacon(self.get_position())
             else:
                 self.log_subject.notify_log_observer("Maximum number of beacons reached.")
 
@@ -151,9 +188,12 @@ class Player(Entity):
             self.consume_healing_potion(usable_item, inventory)
         if event.key == pygame.K_m:
             self.consume_mana_potion(usable_item, inventory)
+        
+        if event.key == pygame.K_r:
+            self.execute_rest()
 
     def reset_pos(self):
-        self.set_position(southwest)
+        self.set_position(player_spawn)
         self.update_rect()
 
     def reset_stats(self):

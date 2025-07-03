@@ -1,5 +1,6 @@
 from entities.player.Player import Player
 from entities.player.races.warriors.Warrior import Warrior
+from items.equipables.weapons.MagicWand import MagicWand
 
 
 class Mage(Warrior):
@@ -39,3 +40,6 @@ class Mage(Warrior):
 
     def init_warrior(self):
         self.set_warrior("Mage")
+
+    def init_starter_weapon(self, player: Player):
+        player.set_main_hand(MagicWand(player.get_position()))

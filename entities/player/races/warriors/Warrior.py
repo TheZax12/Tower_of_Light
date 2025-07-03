@@ -12,18 +12,23 @@ class Warrior:
     def init_warrior(self):
         pass
 
-    def update_stats(self, player):
+    def update_stats(self):
+        pass
+
+    def init_starter_weapon(self):
         pass
 
     @staticmethod
-    def warriors(warrior: str):
-        from entities.player.races.warriors.Knight import Knight
-        from entities.player.races.warriors.Paladin import Paladin
-        from entities.player.races.warriors.Mage import Mage
-        
+    def warriors(warrior: str):        
         match warrior:
-            case "Knight": return Knight()
-            case "Paladin": return Paladin()
-            case "Mage": return Mage()
+            case "Knight":
+                from entities.player.races.warriors.Knight import Knight
+                return Knight()
+            case "Paladin":
+                from entities.player.races.warriors.Paladin import Paladin
+                return Paladin()
+            case "Mage":
+                from entities.player.races.warriors.Mage import Mage                
+                return Mage()
             case _: 
                 raise ValueError(f"Unknown warrior: {warrior}")

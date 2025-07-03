@@ -1,5 +1,6 @@
 from entities.player.Player import Player
 from entities.player.races.warriors.Warrior import Warrior
+from items.equipables.weapons.Dagger import Dagger
 
 
 class Knight(Warrior):
@@ -27,3 +28,6 @@ class Knight(Warrior):
 
     def init_warrior(self):
         self.set_warrior("Knight")
+
+    def init_starter_weapon(self, player: Player):
+        player.set_main_hand(Dagger(player.get_position())) 

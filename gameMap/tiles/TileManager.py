@@ -16,6 +16,8 @@ from UI.Colors import *
 class TileManager:
 
     def __init__(self):
+        self.log_subject = LogSubject()
+        
         self.map_tiles = [[Tile(None) for _ in range(map_width)] for _ in range(map_height)]
         self.beacon_tiles = []
 
@@ -47,26 +49,27 @@ class TileManager:
             for col_index, col in enumerate(level_data_col):
                 tile_type = TileType.int_to_tile(int(col))
                 self.map_tiles[row_index][col_index] = Tile.create_tile(tile_type, MapPosition(col_index, row_index))
-
+    
+    def min_player_spawn_beacon_distance(self, position: MapPosition):
+        return position.distance(player_spawn)
+    
     def beacons_min_distance(self, position: MapPosition):
         return min((position.distance(beacon.get_position()) for beacon in self.beacon_tiles), default=maxsize)
     
     def add_beacon(self, position: MapPosition):
-        log_subject = LogSubject()
-
         if len(self.beacon_tiles) >= self.max_beacon_number:
             return
         beacon = BeaconTile(position)
         self.set_tile(beacon.get_position(), beacon)
         self.beacon_tiles.append(beacon)
 
-        log_subject.notify_log_observer(f"Beacon {len(self.beacon_tiles)}/{self.max_beacon_number} created.")
+        self.log_subject.notify_log_observer(f"Beacon {len(self.beacon_tiles)}/{self.max_beacon_number} created.")
 
         if len(self.beacon_tiles) == self.max_beacon_number:
             self.convert_to_light()
             
     def convert_to_light(self):
-        exit = ExitTile(northeast)
+        exit = ExitTile(exit_spawn)
         self.set_tile(exit.get_position(), exit)
 
         for row in self.map_tiles:
@@ -75,13 +78,11 @@ class TileManager:
                 tile.chaos_to_light()
 
     def advance_level(self, player, display_surface, main_menu_callback):
-            log_subject = LogSubject()
-            
             curernt_tile = self.get_tile(player.get_position())
             if isinstance(curernt_tile, ExitTile):
                 if self.get_level_number() < self.max_level_number:
                     self.set_level_number(self.get_level_number() + 1)
-                    log_subject.notify_log_observer(f"Advanced to level {self.get_level_number()}.")
+                    self.log_subject.notify_log_observer(f"Advanced to level {self.get_level_number()}.")
                     self.reset()
                     player.reset_pos()
                 else:

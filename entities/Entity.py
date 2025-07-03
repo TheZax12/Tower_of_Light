@@ -2,6 +2,7 @@ import pygame
 
 from gameMap.tiles.TileType import TileType
 from gameMap.MapPosition import MapPosition
+from items.equipables.weapons.Weapon import Weapon
 
 from gameMap.MapSettings import *
 
@@ -46,6 +47,18 @@ class Entity():
     
     def get_magic_defence(self) -> int:
         return self.magic_defence
+    
+    def set_experience_points(self, experience_points: int):
+        self.experience_points = experience_points
+
+    def get_experience_points(self) -> int:
+        return self.experience_points
+
+    def set_main_hand(self, main_hand: Weapon):
+        self.main_hand = main_hand
+
+    def get_main_hand(self) -> Weapon:
+        return self.main_hand
 
     def check_collision(self, new_rect, tiles):
         for row in tiles:

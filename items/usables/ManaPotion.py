@@ -1,19 +1,16 @@
 from items.usables.UsableItem import UsableItem
+from items.ItemEffect import ItemEffect
+from items.ItemEffect import ItemEffectType
 from gameMap.MapPosition import MapPosition
 
 
 class ManaPotion(UsableItem):
 
     def __init__(self, position: MapPosition):
-        super().__init__(position)
-        self.effect_value = 40
-        
-    def item_name(self):
-        return "mana potion"
+        super().__init__(position, "Mana Potion")
     
     def init_uses_number(self):
         return 3
     
-    def init_item_effect(self):
-        self.item_effects.append(self.effect_value)
-        return self.item_effects
+    def init_item_effects(self) -> list[ItemEffect]:
+        return [ItemEffect(ItemEffectType.MP_REPLENISHMENT, 40)]

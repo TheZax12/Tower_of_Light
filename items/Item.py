@@ -1,16 +1,11 @@
 from gameMap.MapPosition import MapPosition
 
-
 class Item:
 
     def __init__(self, position: MapPosition):
         self.position = position
         self.discovered = False
         self.visible = False
-
-        self.item_effects = []
-        self.effect_type = None
-        self.effect_value = None
         
     def get_position(self) -> MapPosition:
         return self.position

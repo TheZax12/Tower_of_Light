@@ -1,5 +1,6 @@
 from entities.player.Player import Player
 from entities.player.races.warriors.Warrior import Warrior
+from items.equipables.weapons.Mace import Mace
 
 
 class Paladin(Warrior):
@@ -39,3 +40,6 @@ class Paladin(Warrior):
 
     def init_warrior(self):
         self.set_warrior("Paladin")
+
+    def init_starter_weapon(self, player: Player):
+        player.set_main_hand(Mace(player.get_position()))

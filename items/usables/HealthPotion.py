@@ -1,19 +1,16 @@
 from items.usables.UsableItem import UsableItem
+from items.ItemEffect import ItemEffect
+from items.ItemEffect import ItemEffectType
 from gameMap.MapPosition import MapPosition
 
 
 class HealthPotion(UsableItem):
 
     def __init__(self, position: MapPosition):
-        super().__init__(position)
-        self.effect_value = 30
-
-    def item_name(self):
-        return "healing potion"
+        super().__init__(position, "Healing Potion")
     
-    def init_uses_number(self):
+    def init_uses_number(self) -> int:
         return 3
     
-    def init_item_effect(self):
-        self.item_effects.append(self.effect_value)
-        return self.item_effects
+    def init_item_effects(self) -> list[ItemEffect]:
+        return [ItemEffect(ItemEffectType.HP_REPLENISHMENT, 30)]

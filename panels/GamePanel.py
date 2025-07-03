@@ -5,8 +5,8 @@ from entities.player.Player import Player
 from entities.player.Inventory import Inventory
 from gameMap.tiles.TileManager import TileManager
 from items.ItemManager import ItemManager
-from items.usables.HealthPotion import HealthPotion
-from items.usables.ManaPotion import ManaPotion
+# from items.usables.HealthPotion import HealthPotion
+# from items.usables.ManaPotion import ManaPotion
 from panels.MainMenu import MainMenu
 from panels.CharacterCreationPanel import CharacterCreationPanel
 from log.LogSubject import LogSubject
@@ -39,15 +39,16 @@ class GamePanel:
             MainMenu.create_main_menu(self.display_surface, self.play, pygame.event.get())
             return
         
-        player = Player(southwest, race, warrior)
+        player = Player(player_spawn, race, warrior)
+        warrior.init_starter_weapon(player)
 
         inventory = Inventory()
 
         item_manager = ItemManager()
-        healing_potion_1 = HealthPotion(MapPosition(8, 48))
+        # healing_potion_1 = HealthPotion(MapPosition(8, 48))
         # healing_potion_2 = HealthPotion(MapPosition(10, 45))
         # mana_potion_1 = ManaPotion(MapPosition(9, 46))
-        item_manager.create_item(healing_potion_1)
+        # item_manager.create_item(healing_potion_1)
         # item_manager.create_item(healing_potion_2)
         # item_manager.create_item(mana_potion_1)
 
@@ -64,7 +65,7 @@ class GamePanel:
                     exit()
                 if event.type == pygame.KEYDOWN:
                     player.motion(event, map_width, map_height, game_map.map_tiles)
-                    player.actions(event, game_map, healing_potion_1, inventory)
+                    player.actions(event, game_map, inventory.get_all_items(), inventory)
 
 
             item_manager.check_for_pickups(player, inventory)
