@@ -146,9 +146,11 @@ class Enemy(Entity):
         enemy_manager.bury_enemy(self)
 
         # Drop enemy's weapon.
-        enemy_weapon = self.get_main_hand()
-        enemy_weapon.set_position(self.get_position())
-        item_manager.create_item(enemy_weapon)
+        weapon_drop_chance = 0.5
+        if random.random() < weapon_drop_chance:
+            enemy_weapon = self.get_main_hand()
+            enemy_weapon.set_position(self.get_position())
+            item_manager.create_item(enemy_weapon)
 
         # Drop random usable item.
         usable_item_drop_chance = 0.7

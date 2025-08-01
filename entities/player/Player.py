@@ -31,6 +31,9 @@ class Player(Entity):
 
         self.name = self.race.get_race() + " " + self.warrior.get_warrior()
 
+        self.beacon_casting_cooldown = 20
+        self.resting_cooldown = 7
+
         self.restart()
         
     def get_name(self) -> str:
@@ -148,7 +151,6 @@ class Player(Entity):
 
     def create_beacon(self):
         tile_manager = self.game_panel.tile_manager
-        action_cooldown_number = 20
 
         if len(tile_manager.beacon_tiles) < tile_manager.max_beacon_number:
                 if tile_manager.beacons_min_distance(self.get_position()) < tile_manager.min_beacon_distance:
@@ -160,13 +162,14 @@ class Player(Entity):
                 elif self.get_position() == exit_spawn:
                     self.log_subject.notify_log_observer("Cannot place a beacon on the exit tile.")
                     return
-                elif self.get_actions_number() < action_cooldown_number:
-                    actions_left = action_cooldown_number - self.get_actions_number()
+                elif self.get_actions_number() - self.last_beacon_cast_action < self.beacon_casting_cooldown:
+                    actions_left = self.beacon_casting_cooldown - (self.get_actions_number() - self.last_beacon_cast_action)
                     self.log_subject.notify_log_observer(f"Beacon casting cooldown: {actions_left} actions remaining.")
                 else:
                     tile_manager.add_beacon(self.get_position())
-                    self.set_actions_number(0)
+                    self.last_beacon_cast_action = self.get_actions_number()
                     self.set_experience_points(self.get_experience_points() + 100)
+                    self.set_actions_number(self.get_actions_number() + 1)
                     self.set_take_turn(True)
         else:
             self.log_subject.notify_log_observer("Maximum number of beacons reached.")
@@ -323,26 +326,32 @@ class Player(Entity):
         return replenished_stat
 
     def execute_rest(self):
-        if self.get_hitpoints() < self.get_max_hitpoints() or self.get_manapoints() < self.get_max_manapoints():
-            self.log_subject.notify_log_observer("Resting...")
-            if self.get_hitpoints() < self.get_max_hitpoints() and self.get_manapoints() < self.get_max_manapoints():
-                hitpoints_replenished = self.stat_replenish(self.get_hitpoints(), self.get_max_hitpoints(), 0.05)
-                manapoints_replenished = self.stat_replenish(self.get_manapoints(), self.get_max_manapoints(), 0.05)
-                self.log_subject.notify_log_observer(f"Gained {hitpoints_replenished - self.get_hitpoints()} health points and {manapoints_replenished - self.get_manapoints()} mana points.")
-                self.set_hitpoints(min(hitpoints_replenished, self.get_max_hitpoints()))
-                self.set_manapoints(min(manapoints_replenished, self.get_max_manapoints()))
-            elif self.get_hitpoints() < self.get_max_hitpoints():
-                hitpoints_replenished = self.stat_replenish(self.get_hitpoints(), self.get_max_hitpoints(), 0.05)
-                self.log_subject.notify_log_observer(f"Gained {hitpoints_replenished - self.get_hitpoints()} health points.")
-                self.set_hitpoints(min(hitpoints_replenished, self.get_max_hitpoints()))
-            elif self.get_manapoints() < self.get_max_manapoints():
-                manapoints_replenished = self.stat_replenish(self.get_manapoints(), self.get_max_manapoints(), 0.05)
-                self.log_subject.notify_log_observer(f"Gained {manapoints_replenished - self.get_manapoints()} mana points.")
-                self.set_manapoints(min(manapoints_replenished, self.get_max_manapoints()))
-            self.set_actions_number(self.get_actions_number() + 1)
-            self.set_take_turn(True)
-        else:
-            self.log_subject.notify_log_observer("Resting has no effect. Hitpoints and manapoints are already full.")
+            if self.get_actions_number() - self.last_rest_action < self.resting_cooldown:
+                actions_left = self.resting_cooldown - (self.get_actions_number() - self.last_rest_action)
+                self.log_subject.notify_log_observer(f"Resting cooldown: {actions_left} actions remaining.")
+                return
+
+            if self.get_hitpoints() < self.get_max_hitpoints() or self.get_manapoints() < self.get_max_manapoints():
+                self.log_subject.notify_log_observer("Resting...")
+                if self.get_hitpoints() < self.get_max_hitpoints() and self.get_manapoints() < self.get_max_manapoints():
+                    hitpoints_replenished = self.stat_replenish(self.get_hitpoints(), self.get_max_hitpoints(), 0.05)
+                    manapoints_replenished = self.stat_replenish(self.get_manapoints(), self.get_max_manapoints(), 0.05)
+                    self.log_subject.notify_log_observer(f"Gained {hitpoints_replenished - self.get_hitpoints()} health points and {manapoints_replenished - self.get_manapoints()} mana points.")
+                    self.set_hitpoints(min(hitpoints_replenished, self.get_max_hitpoints()))
+                    self.set_manapoints(min(manapoints_replenished, self.get_max_manapoints()))
+                elif self.get_hitpoints() < self.get_max_hitpoints():
+                    hitpoints_replenished = self.stat_replenish(self.get_hitpoints(), self.get_max_hitpoints(), 0.05)
+                    self.log_subject.notify_log_observer(f"Gained {hitpoints_replenished - self.get_hitpoints()} health points.")
+                    self.set_hitpoints(min(hitpoints_replenished, self.get_max_hitpoints()))
+                elif self.get_manapoints() < self.get_max_manapoints():
+                    manapoints_replenished = self.stat_replenish(self.get_manapoints(), self.get_max_manapoints(), 0.05)
+                    self.log_subject.notify_log_observer(f"Gained {manapoints_replenished - self.get_manapoints()} mana points.")
+                    self.set_manapoints(min(manapoints_replenished, self.get_max_manapoints()))
+                self.last_rest_action = self.get_actions_number()
+                self.set_actions_number(self.get_actions_number() + 1)
+                self.set_take_turn(True)
+            else:
+                self.log_subject.notify_log_observer("Resting has no effect. Hitpoints and manapoints are already full.")
     
     def base_attack_damage_calculation(self):        
         damage_list = self.get_main_hand().get_damage_list()
@@ -529,6 +538,9 @@ class Player(Entity):
         self.reset_position()
         self.reset_stats()
         self.reset_equipment()
+
+        self.last_beacon_cast_action = -self.beacon_casting_cooldown
+        self.last_rest_action = -self.resting_cooldown
 
         self.pending_equip_setter = None
         self.set_item_selection(False)
