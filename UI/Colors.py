@@ -10,6 +10,9 @@ text_highlight_color = '#9ca3af'
 background_color = '#fafafa'
 """ Natural 50 """
 
+pause_menu_background_color = '#334155'
+""" Slate 700 """
+
 border_color = '#030712'
 """ Grey 950 """
 

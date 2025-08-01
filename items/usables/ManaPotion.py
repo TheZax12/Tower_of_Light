@@ -7,9 +7,12 @@ from gameMap.MapPosition import MapPosition
 class ManaPotion(UsableItem):
 
     def __init__(self, position: MapPosition):
-        super().__init__(position, "Mana Potion")
+        super().__init__(position)
     
-    def init_uses_number(self):
+    def get_item_name(self):
+        return "Mana Potion"
+    
+    def init_uses_number(self) -> int:
         return 3
     
     def init_item_effects(self) -> list[ItemEffect]:

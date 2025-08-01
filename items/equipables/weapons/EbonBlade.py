@@ -7,8 +7,14 @@ from items.equipables.Dice import Dice
 class EbonBlade(Weapon):
 
     def __init__(self, position: MapPosition):
-        super().__init__(position,
-                         None,
-                         [Damage(DamageType.SWING, Dice.from_string("2d6+2")),
-                          Damage(DamageType.MAGIC, Dice.from_string("2d6+2"))],
-                         "Ebon Blade")
+        super().__init__(
+            position,
+            [],
+            [
+                Damage(DamageType.SWING, Dice.from_string("2d6+2")),
+                Damage(DamageType.MAGIC, Dice.from_string("2d6+2"))
+            ]
+        )
+        
+    def get_item_name(self) -> str:
+        return "Ebon Blade"

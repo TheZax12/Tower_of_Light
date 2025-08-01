@@ -29,9 +29,6 @@ class MapPosition:
 
     def get_tile_y(self) -> int:
         return self.tile_y
-
-    def distance(self, other: MapPosition) -> int:
-        return abs(self.x - other.x) + abs(self.y - other.y)
     
     @staticmethod
     def generate_position(x: int, y: int) -> MapPosition:
@@ -48,3 +45,19 @@ class MapPosition:
             y = 0
         
         return MapPosition(x, y)
+    
+    def above(self) -> MapPosition:
+        return self.generate_position(self.x, self.y - 1)
+    
+    def below(self) -> MapPosition:
+        return self.generate_position(self.x, self.y + 1)
+    
+    def left(self) -> MapPosition:
+        return self.generate_position(self.x - 1, self.y)
+    
+    def right(self) -> MapPosition:
+        return self.generate_position(self.x + 1, self.y)
+
+    def distance_to(self, other: MapPosition) -> int:
+        """Calculates the Manhattan distance to another position."""
+        return abs(self.x - other.x) + abs(self.y - other.y)

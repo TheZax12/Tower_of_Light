@@ -6,7 +6,6 @@ from gameMap.tiles.Tile import Tile
 from gameMap.tiles.decorators.BeaconTile import BeaconTile
 from gameMap.tiles.decorators.ExitTile import ExitTile
 from gameMap.MapPosition import MapPosition
-from panels.EndScreen import EndScreen
 from log.LogSubject import LogSubject
 
 from gameMap.MapSettings import *
@@ -15,31 +14,27 @@ from UI.Colors import *
 
 class TileManager:
 
-    def __init__(self):
+    def __init__(self, game_panel):
+        self.game_panel = game_panel
         self.log_subject = LogSubject()
         
         self.map_tiles = [[Tile(None) for _ in range(map_width)] for _ in range(map_height)]
+        self.wall_tiles = []
         self.beacon_tiles = []
 
-        self.level_number = 1
-        self.max_level_number = 6
         self.max_beacon_number = 3
         self.min_beacon_distance = 15
+
+        self.map_load()
 
     def set_tile(self, position: MapPosition, tile: Tile):
         self.map_tiles[position.y][position.x] = tile
 
     def get_tile(self, position: MapPosition) -> Tile:
         return self.map_tiles[position.y][position.x]
-    
-    def set_level_number(self, level_number):
-        self.level_number = level_number
-
-    def get_level_number(self):
-        return self.level_number
         
     def map_load(self):
-        file_path = "gameMap/levels/level_" + str(self.get_level_number()) + ".txt"
+        file_path = "gameMap/levels/level_" + str(self.game_panel.get_game_level()) + ".txt"
         
         with open(file_path, "r") as file:
             level_data = file.readlines()
@@ -48,13 +43,20 @@ class TileManager:
             level_data_col = row.split(" ")
             for col_index, col in enumerate(level_data_col):
                 tile_type = TileType.int_to_tile(int(col))
-                self.map_tiles[row_index][col_index] = Tile.create_tile(tile_type, MapPosition(col_index, row_index))
+                tile = Tile.create_tile(tile_type, MapPosition(col_index, row_index))
+                self.map_tiles[row_index][col_index] = tile
+
+                if tile.get_type() == TileType.WALL:
+                    self.wall_tiles.append(tile)
+    
+    def get_wall_tiles(self):
+        return self.wall_tiles
     
     def min_player_spawn_beacon_distance(self, position: MapPosition):
-        return position.distance(player_spawn)
+        return position.distance_to(player_spawn)
     
     def beacons_min_distance(self, position: MapPosition):
-        return min((position.distance(beacon.get_position()) for beacon in self.beacon_tiles), default=maxsize)
+        return min((position.distance_to(beacon.get_position()) for beacon in self.beacon_tiles), default=maxsize)
     
     def add_beacon(self, position: MapPosition):
         if len(self.beacon_tiles) >= self.max_beacon_number:
@@ -63,7 +65,8 @@ class TileManager:
         self.set_tile(beacon.get_position(), beacon)
         self.beacon_tiles.append(beacon)
 
-        self.log_subject.notify_log_observer(f"Beacon {len(self.beacon_tiles)}/{self.max_beacon_number} created.")
+        self.log_subject.notify_log_observer(f"Create {len(self.beacon_tiles)}/{self.max_beacon_number} beacons of light.")
+        self.game_panel.enemy_manager.update_on_beacon_creation()
 
         if len(self.beacon_tiles) == self.max_beacon_number:
             self.convert_to_light()
@@ -77,42 +80,30 @@ class TileManager:
                 tile.set_discovered(True)
                 tile.chaos_to_light()
 
-    def advance_level(self, player, display_surface, main_menu_callback):
-            curernt_tile = self.get_tile(player.get_position())
-            if isinstance(curernt_tile, ExitTile):
-                if self.get_level_number() < self.max_level_number:
-                    self.set_level_number(self.get_level_number() + 1)
-                    self.log_subject.notify_log_observer(f"Advanced to level {self.get_level_number()}.")
-                    self.reset()
-                    player.reset_pos()
-                else:
-                    EndScreen().winning_screen(display_surface, main_menu_callback)
-                    return True
-            return False
-
-    def tile_vilibility(self, player):
+    def tile_visibility(self):
+        player = self.game_panel.player
+        
         for row in self.map_tiles:
             for tile in row:
-                distance_to_tile = tile.position.distance(player.get_position())
+                distance_to_tile = tile.get_position().distance_to(player.get_position())
                 if distance_to_tile <= player.visibility_radius:
                     tile.set_visible(True)
-                    if not tile.is_discorvered():
+                    if not tile.is_discovered():
                         tile.set_discovered(True)
                 else:
                     tile.set_visible(False)
 
-    def draw_map(self, display_surface):
-        for row in self.map_tiles:
-            for tile in row:
-                if not tile.is_discorvered():
-                    pygame.draw.rect(display_surface, undiscovered_area_color, (tile.position.x * tile_size, tile.position.y * tile_size, tile_size, tile_size))
-                elif tile.is_visible():
-                    pygame.draw.rect(display_surface, tile.visible_color, (tile.position.x * tile_size, tile.position.y * tile_size, tile_size, tile_size))
-                else:
-                    pygame.draw.rect(display_surface, tile.invisible_color, (tile.position.x * tile_size, tile.position.y * tile_size, tile_size, tile_size))
-                
-                pygame.draw.rect(display_surface, (0, 0, 0), (tile.position.x * tile_size, tile.position.y * tile_size, tile_size, tile_size), 1)
+    def update(self):
+        self.tile_visibility()
 
     def reset(self):
+        self.beacon_tiles.clear()
+        self.wall_tiles.clear()
         self.map_load()
-        self.beacon_tiles = []
+        self.tile_visibility()
+
+    def draw_map(self, display_surface: pygame.Surface):
+        for row in self.map_tiles:
+            for tile in row:
+                tile.draw_tile(display_surface)
+                pygame.draw.rect(display_surface, (0, 0, 0), (tile.position.get_tile_x(), tile.position.get_tile_y(), tile_size, tile_size), 1)

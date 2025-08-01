@@ -1,16 +1,24 @@
 import pygame
+import math
 
-from gameMap.tiles.TileType import TileType
+from log.LogSubject import LogSubject
+from entities.Direction import Direction
 from gameMap.MapPosition import MapPosition
 from items.equipables.weapons.Weapon import Weapon
+from items.equipables.Damage import DamageType
 
-from gameMap.MapSettings import *
+from gameMap.MapSettings import tile_size
 
 
-class Entity():
-
-    def __init__(self, position: MapPosition):
+class Entity:
+    
+    def __init__(self, game_panel, position: MapPosition):
+        self.game_panel = game_panel
         self.position = position
+        self.direction = Direction.NONE
+        self.collision = False
+
+        self.set_rect(pygame.Rect(self.get_position().get_tile_x(), self.get_position().get_tile_y(), tile_size, tile_size))
         
     def set_position(self, position: MapPosition):
         self.position = position
@@ -18,6 +26,27 @@ class Entity():
     def get_position(self) -> MapPosition:
         return self.position
     
+    def set_direction(self, direction: Direction):
+        self.direction = direction
+
+    def get_direction(self) -> Direction:
+        return self.direction
+    
+    def set_collision(self, collision: bool):
+        self.collision = collision
+
+    def get_collision(self) -> bool:
+        return self.collision
+    
+    def set_rect(self, rect: pygame.Rect):
+        self.rect = rect
+    
+    def get_rect(self) -> pygame.Rect:
+        return self.rect
+    
+    def update_rect(self):
+        self.get_rect().topleft = (self.get_position().get_tile_x(), self.get_position().get_tile_y())
+
     def set_hitpoints(self, hitpoints: int):
         self.hitpoints = hitpoints
 
@@ -59,12 +88,80 @@ class Entity():
 
     def get_main_hand(self) -> Weapon:
         return self.main_hand
+    
+    def move_up(self):
+        self.set_position(self.get_position().above())
 
-    def check_collision(self, new_rect, tiles):
-        for row in tiles:
-            for tile in row:
-                if tile.get_type() == TileType.WALL:
-                    tile_rect = pygame.Rect(tile.position.x * tile_size, tile.position.y * tile_size, tile_size, tile_size)
-                    if new_rect.colliderect(tile_rect):
-                        return True
+    def move_down(self):
+        self.set_position(self.get_position().below())
+
+    def move_left(self):
+        self.set_position(self.get_position().left())
+
+    def move_right(self):
+        self.set_position(self.get_position().right())
+
+    def set_direction_before_moving(self):
+        pass
+
+    def check_for_wall_collision(self, entity_rect: pygame.Rect) -> bool:
+        """ Checks for entity-wall collision. """
+        for wall_tile in self.game_panel.tile_manager.get_wall_tiles():
+            if entity_rect.colliderect(wall_tile.get_rect()):
+                return True
         return False
+
+    def allowed_position(self):
+        pass
+
+    def move(self):
+        if not self.get_collision():
+            match self.get_direction():
+                case Direction.UP:
+                    self.move_up()
+                case Direction.DOWN:
+                    self.move_down()
+                case Direction.LEFT:
+                    self.move_left()
+                case Direction.RIGHT:
+                    self.move_right()
+            self.update_rect()
+
+    def receive_damage(self, damage_amount: int, defence_amount_getter, damage_type: DamageType):
+        log_subject = LogSubject()
+        
+        defence_amount = defence_amount_getter()
+        if defence_amount == math.inf:
+            log_subject.notify_log_observer(f"Immune to {damage_type.name.lower()} damage.")
+            return
+        
+        damage_dealt = damage_amount - defence_amount
+        if damage_dealt <= 0:
+            return
+        
+        if self.get_hitpoints() <= damage_dealt:
+            self.set_hitpoints(0)
+            return
+        
+        self.set_hitpoints(self.get_hitpoints() - damage_dealt)
+
+    def receive_damage_type(self, damage_type: DamageType, damage_amount: int):
+        if damage_type == DamageType.THRUST:
+            self.receive_damage(damage_amount, self.get_thrust_defence, damage_type)
+        elif damage_type == DamageType.SWING:
+            self.receive_damage(damage_amount, self.get_swing_defence, damage_type)
+        elif damage_type == DamageType.MAGIC:
+            self.receive_damage(damage_amount, self.get_magic_defence, damage_type)
+
+    def receive_attack(self, damage_list):
+        for damage in damage_list:
+            self.receive_damage_type(damage.get_damage_type(), damage.get_damage_amount())
+
+        if self.get_hitpoints() <= 0:
+            self.die()
+    
+    def attack(self, damage_list, target):
+        target.receive_attack(damage_list)
+
+    def die(self):
+        pass

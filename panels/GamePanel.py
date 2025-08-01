@@ -5,10 +5,7 @@ from entities.player.Player import Player
 from entities.player.Inventory import Inventory
 from gameMap.tiles.TileManager import TileManager
 from items.ItemManager import ItemManager
-# from items.usables.HealthPotion import HealthPotion
-# from items.usables.ManaPotion import ManaPotion
-from panels.MainMenu import MainMenu
-from panels.CharacterCreationPanel import CharacterCreationPanel
+from entities.enemies.EnemyManager import EnemyManager
 from log.LogSubject import LogSubject
 from panels.LogPanel import LogPanel
 
@@ -19,82 +16,90 @@ from UI.Colors import *
 
 class GamePanel:
     
-    def __init__(self):
+    def __init__(self, display_surface, race, warrior):        
+        self.display_surface = display_surface
+
+        self.win = False
+        self.game_over = False
+        self.level_number = 1
+        self.max_level_number = 6
+
+        self.log_panel = LogPanel(self, screen_width, 0, log_width, log_height, pygame.font.SysFont("Arial", 18), pygame.font.SysFont("Arial", 18))
         self.log_subject = LogSubject()
+
+        self.player = Player(self, player_spawn, race, warrior)
+        self.inventory = Inventory(self)
+
+        self.tile_manager = TileManager(self)
+        self.enemy_manager = EnemyManager(self)
+        self.item_manager = ItemManager(self)
         
-        self.display_surface = pygame.display.set_mode((screen_width + log_width, screen_height))
-        self.log_panel = LogPanel(screen_width, 0, log_width, log_height, pygame.font.SysFont("Arial", 18), pygame.font.SysFont("Arial", 18))
         self.log_subject.attach_log_observer(self.log_panel)
 
-        pygame.display.set_caption("The Tower of Light")
+    def set_win(self, win):
+        self.win = win
 
-    def play(self):
+    def is_win(self):
+        return self.win
+    
+    def set_game_over(self, game_over):
+        self.game_over = game_over
+
+    def is_game_over(self):
+        return self.game_over
+    
+    def set_game_level(self, level_number):
+        self.level_number = level_number
+
+    def get_game_level(self):
+        return self.level_number
+    
+    def advance_level(self):            
+            curernt_position = self.player.get_position()
+            if curernt_position == exit_spawn and len(self.tile_manager.beacon_tiles) == self.tile_manager.max_beacon_number:
+                if self.get_game_level() < self.max_level_number:
+                    self.set_game_level(self.get_game_level() + 1)
+                    self.reset()
+                    self.log_subject.notify_log_observer(f"Advanced to level {self.get_game_level()}.")
+                else:
+                    self.set_win(True)
+
+    def update(self):
+        self.tile_manager.update()
+        self.item_manager.update()
+        if self.player.get_take_turn():
+            self.enemy_manager.update()
+            self.player.set_take_turn(False)
+
+    def reset(self):
+        self.player.reset_position()
+        self.tile_manager.reset()
+        self.item_manager.reset()
+        self.enemy_manager.reset()
+        self.log_panel.reset()
+
+    def draw(self):
+        self.log_panel.draw(self.display_surface)
+        self.tile_manager.draw_map(self.display_surface)
+        self.player.draw(self.display_surface)
+        self.enemy_manager.draw_enemies(self.display_surface)
+        self.item_manager.draw_items(self.display_surface)
+    
+    def play(self, events):
+
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                self.player.actions(event)
+                self.player.update_level()
+
+        self.display_surface.fill(background_color)
+
+        self.log_panel.log_scrolling(events)
         
-        game_map = TileManager()
-        game_map.map_load()
+        self.update()
+        self.advance_level()
+        self.draw()
 
-        race, warrior = CharacterCreationPanel.create_character_creation_panel(self.display_surface)
-
-        if race is None or warrior is None:
-            MainMenu.create_main_menu(self.display_surface, self.play, pygame.event.get())
-            return
-        
-        player = Player(player_spawn, race, warrior)
-        warrior.init_starter_weapon(player)
-
-        inventory = Inventory()
-
-        item_manager = ItemManager()
-        # healing_potion_1 = HealthPotion(MapPosition(8, 48))
-        # healing_potion_2 = HealthPotion(MapPosition(10, 45))
-        # mana_potion_1 = ManaPotion(MapPosition(9, 46))
-        # item_manager.create_item(healing_potion_1)
-        # item_manager.create_item(healing_potion_2)
-        # item_manager.create_item(mana_potion_1)
-
-        clock = pygame.time.Clock()
-
-        running = True
-        while running:
-            events = pygame.event.get()
-            
-            for event in events:
-                if event.type == pygame.QUIT:
-                    running = False
-                    pygame.quit()
-                    exit()
-                if event.type == pygame.KEYDOWN:
-                    player.motion(event, map_width, map_height, game_map.map_tiles)
-                    player.actions(event, game_map, inventory.get_all_items(), inventory)
-
-
-            item_manager.check_for_pickups(player, inventory)
-
-            self.log_panel.log_scrolling(events)
-            
-            self.display_surface.fill(background_color)
-            
-            game_map.tile_vilibility(player)
-            item_manager.item_visibility(player)
-
-            game_map.draw_map(self.display_surface)
-
-            main_menu_callback = lambda: MainMenu.create_main_menu(self.display_surface, self.play, pygame.event.get())
-            if game_map.advance_level(player, self.display_surface, main_menu_callback):
-                return
-
-            # Draw the player
-            pygame.draw.rect(self.display_surface, player_color, player.rect)
-            pygame.draw.rect(self.display_surface, (0, 0, 0), player.rect, 1)
-
-            # Draw the items
-            item_manager.draw_item(self.display_surface)
-
-            # Draw the log panel
-            self.log_panel.draw(self.display_surface, player, inventory)
-
-            # Update the display
-            pygame.display.update()
-
-            # Setting the frame rate
-            clock.tick(60)
+    def draw_game_state(self):
+        self.display_surface.fill(background_color)
+        self.draw()

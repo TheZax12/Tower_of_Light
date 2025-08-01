@@ -1,15 +1,15 @@
 import pygame
 
 from log.LogObserver import LogObserver
-from entities.player.Player import Player
-from entities.player.Inventory import Inventory
 
 from UI.Colors import *
 
 
 class LogPanel(LogObserver):
     
-    def __init__(self, x, y, width, height, title_font, message_font):
+    def __init__(self, game_panel, x, y, width, height, title_font, message_font):
+        self.game_panel = game_panel
+
         self.rect = pygame.Rect(x, y, width, height)
         self.message_font = message_font
         self.line_height = self.message_font.get_height() + 4
@@ -23,6 +23,9 @@ class LogPanel(LogObserver):
         self.background_color = background_color
         self.text_color = (0, 0, 0)
         self.border_color = border_color
+
+        self.enemy_log_max_lines = 6
+        self.enemy_log_reserved_height = self.title_height + (self.line_height * self.enemy_log_max_lines) - 8
         
         self.scroll_offset = 0 
         self.last_scroll_time = pygame.time.get_ticks()
@@ -172,16 +175,16 @@ class LogPanel(LogObserver):
         for line in self.logs[start:end]:
             text_surface = self.message_font.render(line, True, self.text_color)
             display_surface.blit(text_surface, (self.rect.left + 10, y))
-            y += self.line_height
+            y += self.line_height        
 
-    def render_player_stats(self, display_surface: pygame.Surface, player: Player) -> int:
+    def render_player_stats(self, display_surface: pygame.Surface) -> int:
         stats_title = "~ ~ ~ ~ ~ ~ PLAYER STATS ~ ~ ~ ~ ~ ~"
         title_surface = self.title_font.render(stats_title, True, self.text_color)
         title_x = self.rect.left + (self.rect.width - title_surface.get_width()) // 2
         title_y = self.rect.top + 5
         display_surface.blit(title_surface, (title_x, title_y))
         
-        stats_string = player.player_stats()
+        stats_string = self.game_panel.player.player_stats()
         stats_lines = []
         if isinstance(stats_string, str):
             stats_lines = stats_string.strip().split('\n')
@@ -199,14 +202,14 @@ class LogPanel(LogObserver):
 
         return current_y + 5
     
-    def render_inventory_contents(self, display_surface: pygame.Surface, inventory: Inventory, start_y: int) -> int:
+    def render_inventory_contents(self, display_surface: pygame.Surface, start_y: int) -> int:
         inventory_title = "~ ~ ~ ~ ~ ~ ~ INVENTORY ~ ~ ~ ~ ~ ~ ~"
         title_surface = self.title_font.render(inventory_title, True, self.text_color)
         title_x = self.rect.left + (self.rect.width - title_surface.get_width()) // 2
         title_y = start_y
         display_surface.blit(title_surface, (title_x, title_y))
 
-        inventory_string = inventory.inventory_contents()
+        inventory_string = self.game_panel.inventory.inventory_contents()
         inventory_lines = []
         if isinstance(inventory_string, str):
             inventory_lines = inventory_string.strip().split('\n')
@@ -223,14 +226,46 @@ class LogPanel(LogObserver):
             current_y += line_height
 
         return current_y + 5
+    
+    def render_enemy_log(self, display_surface: pygame.Surface, start_y: int):
+        enemy_log_title = "~ ~ ~ ~ ~ ~ ~ ~ ENEMIES ~ ~ ~ ~ ~ ~ ~ ~"
+        title_surface = self.title_font.render(enemy_log_title, True, self.text_color)
+        title_x = self.rect.left + (self.rect.width - title_surface.get_width()) // 2
+        title_y = start_y
+        display_surface.blit(title_surface, (title_x, title_y))
 
-    def draw(self, display_surface: pygame.Surface, player: Player, inventory: Inventory):
+        current_y = title_y + title_surface.get_height() + 5
+        line_height = self.message_font.get_linesize()
+
+        distance_to_player_to_be_shown = 10
+        enemies_in_range = []
+        for enemy in self.game_panel.enemy_manager.get_generated_enemies():
+            if enemy.get_position().distance_to(self.game_panel.player.get_position()) <= distance_to_player_to_be_shown:
+                enemies_in_range.append(enemy)
+
+        for i, enemy in enumerate(enemies_in_range):
+            if i >= self.enemy_log_max_lines:
+                break
+            enemy_info = f"{enemy.get_name()}: {enemy.get_hitpoints()}/{enemy.get_max_hitpoints()} HP"
+            text_surface = self.message_font.render(enemy_info, True, self.text_color)
+            text_x = self.rect.left + 10
+            display_surface.blit(text_surface, (text_x, current_y))
+            current_y += line_height
+
+        return start_y + self.enemy_log_reserved_height
+    
+    def reset(self):
+        self.logs.clear()
+        self.scroll_offset = 0
+
+    def draw(self, display_surface: pygame.Surface):
         pygame.draw.rect(display_surface, self.background_color, self.rect)
         pygame.draw.rect(display_surface, self.border_color, self.rect, 1)
         
-        stats_end_y = self.render_player_stats(display_surface, player)
-        inventory_end_y = self.render_inventory_contents(display_surface, inventory, stats_end_y)
+        player_stats_end_y = self.render_player_stats(display_surface)
+        inventory_end_y = self.render_inventory_contents(display_surface, player_stats_end_y)
+        enemy_log_end_y = self.render_enemy_log(display_surface, inventory_end_y)
         
-        self.header_section_height = inventory_end_y - self.rect.top
+        self.header_section_height = enemy_log_end_y - self.rect.top
 
         self.render_transcript(display_surface, y_offset=self.header_section_height)

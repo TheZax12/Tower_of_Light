@@ -18,11 +18,11 @@ class Damage:
         self.damage_type = damage_type
         self.damage_dice = copy(damage_dice)
 
+    def get_damage_type(self) -> DamageType:
+        return self.damage_type
+
     def get_damage_amount(self) -> int:
         return self.damage_dice.roll()
     
     def enhance(self, value: int):
         self.damage_dice.add_constant_addend(value)
-    
-    def __repr__(self):
-        return f"Damage(damage type={self.damage_type.name}, damage dice={self.damage_dice})"

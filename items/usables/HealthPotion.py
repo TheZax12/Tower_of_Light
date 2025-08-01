@@ -7,7 +7,10 @@ from gameMap.MapPosition import MapPosition
 class HealthPotion(UsableItem):
 
     def __init__(self, position: MapPosition):
-        super().__init__(position, "Healing Potion")
+        super().__init__(position)
+
+    def get_item_name(self) -> str:
+        return "Healing Potion"
     
     def init_uses_number(self) -> int:
         return 3

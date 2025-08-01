@@ -1,72 +1,92 @@
-import pygame
-
-from entities.player.Player import Player
 from log.LogSubject import LogSubject
 from items.equipables.EquipableItem import EquipableItem
 from items.usables.UsableItem import UsableItem
 
-from gameMap.MapSettings import *
-from UI.Colors import *
-
 class ItemManager:
 
-    def __init__(self):
-        self.equipable_items = []
-        self.usable_items = []
+    def __init__(self, game_panel):
+        self.game_panel = game_panel
 
-    def all_items(self):
-        return self.equipable_items + self.usable_items
+        self.equipable_items = {}
+        self.usable_items = {}
+
+        self.last_player_position = None
+
+    def get_all_items(self):
+        all_items = []
+        for item_list in self.equipable_items.values():
+            all_items.extend(item_list)
+        for item_list in self.usable_items.values():
+            all_items.extend(item_list)
+        return all_items
 
     def create_item(self, item):
+        position = item.get_position()
         if isinstance(item, EquipableItem):
-            self.equipable_items.append(item)
+            self.equipable_items.setdefault(position, []).append(item)
         elif isinstance(item, UsableItem):
-            self.usable_items.append(item)
+            self.usable_items.setdefault(position, []).append(item)
 
     def erase_item(self, item):
+        position = item.get_position()
         if isinstance(item, EquipableItem):
-            if item in self.equipable_items:
-                self.equipable_items.remove(item)
+            items = self.equipable_items.get(position)
+            if items and item in items:
+                items.remove(item)
+                if not items:
+                    del self.equipable_items[position]
         elif isinstance(item, UsableItem):
-            if item in self.usable_items:
-                self.usable_items.remove(item)
+            items = self.usable_items.get(position)
+            if items and item in items:
+                items.remove(item)
+                if not items:
+                    del self.usable_items[position]
 
-    def check_for_pickups(self, player: Player, inventory):
-        """ Checks if the player is on the same tile as an item and adds it to the inventory. """
+    def usable_item_auto_pickup(self):
+        """Check if the player is on the same tile as an usable item and add it to the inventory."""
         log_subject = LogSubject()
 
-        for item in self.usable_items[:]:
-            if player.get_position() == item.get_position():
-                inventory.add_item(item)
-                log_subject.notify_log_observer(f"Picked up a {item.item_name()}.")
-                self.erase_item(item)
+        position = self.game_panel.player.get_position()
+        items = self.usable_items.get(position, [])[:]
+        for item in items:
+            self.game_panel.inventory.add_item(item)
+            log_subject.notify_log_observer(f"Picked up a {item.get_item_name()}.")
+            self.erase_item(item)
+    
+    def equipment_on_tile(self):
+        """Notify the player about the equipable items on the tile they are currently on."""
+        log_subject = LogSubject()
+
+        current_position = self.game_panel.player.get_position()
+        if current_position == self.last_player_position:
+            return
         
-    def item_visibility(self, player):
-        for item in self.all_items():
-            distance_to_item = item.get_position().distance(player.get_position())
-            if distance_to_item <= player.visibility_radius:
-                item.set_visible(True)
-                if not item.is_discovered():
-                    item.set_discovered(True)
-            else:
-                item.set_visible(False)
+        if not self.equipable_items:
+            return
 
-    def draw_item(self, display_surface):
-        for item in self.all_items():
-            if isinstance(item, EquipableItem):
-                x_pos = item.get_position().x * tile_size
-                y_pos = item.get_position().y * tile_size + 9
-            elif isinstance(item, UsableItem):
-                x_pos = item.get_position().x * tile_size + 9
-                y_pos = item.get_position().y * tile_size
+        equipment_on_tile = self.equipable_items.get(current_position, [])
+        if equipment_on_tile:
+            log_subject.notify_log_observer("Piece of equipment on tile:")
+            for idx, item in enumerate(equipment_on_tile, 1):
+                log_subject.notify_log_observer(f"{idx}. {item.get_item_name()}")
 
-            item_rect = (x_pos, y_pos, item_size, item_size)
+    def item_visibility(self):
+        for item in self.get_all_items():
+            item.visibility(self.game_panel.player)
 
-            if not item.is_discovered():
-                pygame.draw.rect(display_surface, undiscovered_area_color, item_rect)
-            elif item.is_visible():
-                pygame.draw.rect(display_surface, item.visible_color, item_rect)
-            else:
-                pygame.draw.rect(display_surface, item.invisible_color, item_rect)
+    def update(self):
+        self.item_visibility()
+        self.usable_item_auto_pickup()
+        self.equipment_on_tile()
+        self.last_player_position = self.game_panel.player.get_position()
 
-            pygame.draw.rect(display_surface, (0, 0, 0), item_rect, 1)
+    def reset(self):
+        self.equipable_items.clear()
+        self.usable_items.clear()
+
+    def restart(self):
+        self.reset()
+
+    def draw_items(self, display_surface):
+        for item in self.get_all_items():
+            item.draw(display_surface)

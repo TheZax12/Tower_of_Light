@@ -6,7 +6,7 @@ class Elf(Race):
 
     def init_stats(self, player: Player):
         player.set_strength(6)
-        player.set_intelect(12)
+        player.set_intellect(12)
         player.set_swing_defence(0)
         player.set_thrust_defence(1)
         player.set_magic_defence(2)

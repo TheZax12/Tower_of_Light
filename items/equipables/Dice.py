@@ -25,6 +25,3 @@ class Dice:
     def roll(self) -> int:
         total_roll = sum(random.randint(1, self.dice_sides_number) for _ in range(self.dices_number))
         return total_roll + self.constant_addend
-    
-    def __repr__(self):
-        return f"{self.dices_number}d{self.dice_sides_number}+{self.constant_addend}"

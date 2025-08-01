@@ -6,7 +6,7 @@ class Tauren(Race):
 
     def init_stats(self, player: Player):
         player.set_strength(12)
-        player.set_intelect(6)
+        player.set_intellect(6)
         player.set_swing_defence(1)
         player.set_thrust_defence(2)
         player.set_magic_defence(0)

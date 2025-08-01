@@ -6,8 +6,14 @@ from items.equipables.Dice import Dice
 
 class DemonClaws(Weapon):
     def __init__(self, position: MapPosition):
-        super().__init__(position,
-                         None,
-                         [Damage(DamageType.SWING, Dice.from_string("2d6+4")),
-                          Damage(DamageType.MAGIC, Dice.from_string("2d6+2"))],
-                         "Demon Claws")
+        super().__init__(
+            position,
+            [],
+            [
+                Damage(DamageType.SWING, Dice.from_string("2d6+4")),
+                Damage(DamageType.MAGIC, Dice.from_string("2d6+2"))
+            ]
+        )
+        
+    def get_item_name(self) -> str:
+        return "Demon Claws"

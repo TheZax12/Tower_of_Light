@@ -12,7 +12,7 @@ from UI.Colors import *
 class MainMenu:
     
     @staticmethod
-    def create_main_menu(display_surface: pygame.Surface, start_game_callback, events):
+    def create_main_menu(display_surface: pygame.Surface, events):
         display_surface.blit(pygame.image.load("assets/background.png"), (0, 0))
 
         mouse_position = pygame.mouse.get_pos()
@@ -30,12 +30,10 @@ class MainMenu:
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if start_button.check_for_input(mouse_position):
-                    start_game_callback()
-                    return
+                    return "character creation"
                 elif controls_button.check_for_input(mouse_position):
                     return "controls"
                 elif quit_button.check_for_input(mouse_position):
-                    pygame.quit()
-                    exit()
+                    return "quit"
                 
-        pygame.display.update()
+        return "main menu"

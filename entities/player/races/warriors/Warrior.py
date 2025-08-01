@@ -15,7 +15,10 @@ class Warrior:
     def update_stats(self):
         pass
 
-    def init_starter_weapon(self):
+    def set_starter_weapon(self):
+        pass
+
+    def set_secondary_weapon(self):
         pass
 
     @staticmethod
