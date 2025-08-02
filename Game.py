@@ -18,6 +18,7 @@ class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("The Tower of Light")
+        pygame.display.set_icon(pygame.image.load("assets/icon.png"))
         self.display_surface = pygame.display.set_mode((screen_width + log_width, screen_height))
         self.clock = pygame.time.Clock()
 

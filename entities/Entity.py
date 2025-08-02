@@ -127,12 +127,12 @@ class Entity:
                     self.move_right()
             self.update_rect()
 
-    def receive_damage(self, damage_amount: int, defence_amount_getter, damage_type: DamageType):
+    def damage_amount_received(self, damage_amount: int, defence_amount_getter, damage_type: DamageType):
         log_subject = LogSubject()
         
         defence_amount = defence_amount_getter()
         if defence_amount == math.inf:
-            log_subject.notify_log_observer(f"Immune to {damage_type.name.lower()} damage.")
+            log_subject.notify_log_observer(f"{self.__class__.__name__.capitalize()} immune to {damage_type.name.lower()} damage.")
             return
         
         damage_dealt = damage_amount - defence_amount
@@ -145,23 +145,23 @@ class Entity:
         
         self.set_hitpoints(self.get_hitpoints() - damage_dealt)
 
-    def receive_damage_type(self, damage_type: DamageType, damage_amount: int):
+    def damage_type_received(self, damage_type: DamageType, damage_amount: int):
         if damage_type == DamageType.THRUST:
-            self.receive_damage(damage_amount, self.get_thrust_defence, damage_type)
+            self.damage_amount_received(damage_amount, self.get_thrust_defence, damage_type)
         elif damage_type == DamageType.SWING:
-            self.receive_damage(damage_amount, self.get_swing_defence, damage_type)
+            self.damage_amount_received(damage_amount, self.get_swing_defence, damage_type)
         elif damage_type == DamageType.MAGIC:
-            self.receive_damage(damage_amount, self.get_magic_defence, damage_type)
+            self.damage_amount_received(damage_amount, self.get_magic_defence, damage_type)
 
-    def receive_attack(self, damage_list):
+    def attack_received(self, damage_list):
         for damage in damage_list:
-            self.receive_damage_type(damage.get_damage_type(), damage.get_damage_amount())
+            self.damage_type_received(damage.get_damage_type(), damage.get_damage_amount())
 
         if self.get_hitpoints() <= 0:
             self.die()
     
     def attack(self, damage_list, target):
-        target.receive_attack(damage_list)
+        target.attack_received(damage_list)
 
     def die(self):
         pass

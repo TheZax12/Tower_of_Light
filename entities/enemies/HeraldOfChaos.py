@@ -1,9 +1,9 @@
-from entities.enemies.Enemy import Enemy
+from entities.enemies.Herald import Herald
 from gameMap.MapPosition import MapPosition
 from items.equipables.weapons.EdgeOfChaos import EdgeOfChaos
 
 
-class HeraldOfChaos(Enemy):
+class HeraldOfChaos(Herald):
 
     def __init__(self, game_panel, position: MapPosition):
         super().__init__(game_panel, position)

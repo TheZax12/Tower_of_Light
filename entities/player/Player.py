@@ -378,7 +378,7 @@ class Player(Entity):
         
         # Multiple targets, return the strongest one
         target = max(target_list, key=lambda enemy: (enemy.get_max_hitpoints(), enemy.get_experience_points()))
-        self.log_subject.notify_log_observer(f"Attacking {target.get_name()}")
+        self.log_subject.notify_log_observer(f"Attacking {target.get_name()}.")
         return target
     
     def base_attack(self):        
@@ -386,15 +386,22 @@ class Player(Entity):
         close_up_enemies = self.game_panel.enemy_manager.get_close_up_enemies(attack_distance)
         target = self.choose_target_for_attack(close_up_enemies)
         if target is None:
+            self.log_subject.notify_log_observer("No enemies in range to attack.")
             return
-        else:
-            super().attack(self.base_attack_damage_calculation(), target)
-            self.set_actions_number(self.get_actions_number() + 1)
-            self.set_take_turn(True)
+        
+        super().attack(self.base_attack_damage_calculation(), target)
+        self.set_actions_number(self.get_actions_number() + 1)
+        self.set_take_turn(True)
         
     def spell_attack(self):
         if self.get_max_manapoints() == 0:
             self.log_subject.notify_log_observer(f"{self.warrior.get_warrior()} cannot cast a spell.")
+            return
+        
+        close_up_enemies = self.game_panel.enemy_manager.get_close_up_enemies(self.visibility_radius)
+        target = self.choose_target_for_attack(close_up_enemies)
+        if target is None:
+            self.log_subject.notify_log_observer("No enemies in range to attack.")
             return
         
         manapoints_consumption = int(round(self.get_max_manapoints() * 0.05))
@@ -403,14 +410,9 @@ class Player(Entity):
             return
         
         self.set_manapoints(self.get_manapoints() - manapoints_consumption)
-        close_up_enemies = self.game_panel.enemy_manager.get_close_up_enemies(self.visibility_radius)
-        target = self.choose_target_for_attack(close_up_enemies)
-        if target is None:
-            return
-        else:
-            super().attack(self.spell_attack_damage_calculation(), target)
-            self.set_actions_number(self.get_actions_number() + 1)
-            self.set_take_turn(True)
+        super().attack(self.spell_attack_damage_calculation(), target)
+        self.set_actions_number(self.get_actions_number() + 1)
+        self.set_take_turn(True)
 
     def die(self):
         self.game_panel.set_game_over(True)
