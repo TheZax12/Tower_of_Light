@@ -175,7 +175,7 @@ class LogPanel(LogObserver):
         for line in self.logs[start:end]:
             text_surface = self.message_font.render(line, True, self.text_color)
             display_surface.blit(text_surface, (self.rect.left + 10, y))
-            y += self.line_height        
+            y += self.line_height
 
     def render_player_stats(self, display_surface: pygame.Surface) -> int:
         stats_title = "~ ~ ~ ~ ~ ~ PLAYER STATS ~ ~ ~ ~ ~ ~"

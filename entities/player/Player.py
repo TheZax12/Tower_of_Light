@@ -2,7 +2,7 @@ import pygame
 
 from entities.Entity import Entity
 from entities.player.races.Race import Race
-from entities.player.races.warriors.Warrior import Warrior
+from entities.player.warriors.Warrior import Warrior
 from entities.Direction import Direction
 from items.usables.HealthPotion import HealthPotion
 from items.usables.ManaPotion import ManaPotion

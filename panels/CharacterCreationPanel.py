@@ -1,8 +1,7 @@
 import pygame
-from sys import exit
 
 from entities.player.races.Race import Race
-from entities.player.races.warriors.Warrior import Warrior
+from entities.player.warriors.Warrior import Warrior
 from panels.Button import Button
 from gameMap.MapPosition import MapPosition
 

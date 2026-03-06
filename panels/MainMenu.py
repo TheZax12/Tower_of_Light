@@ -1,5 +1,4 @@
 import pygame
-from sys import exit
 
 from panels.Button import Button
 from gameMap.MapPosition import MapPosition

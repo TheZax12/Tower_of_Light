@@ -10,7 +10,6 @@ from panels.PauseMenu import PauseMenu
 
 from panels.PanelSettings import *
 from gameMap.MapSettings import *
-from UI.Colors import *
 
 
 class Game:
@@ -56,8 +55,10 @@ class Game:
                         self.game_panel.play(events)
                         if self.game_panel.is_win():
                             self.game_state = "win screen"
+                            self.game_panel = None
                         elif self.game_panel.is_game_over():
                             self.game_state = "lose screen"
+                            self.game_panel = None
             elif self.game_state == "pause":
                 if self.game_panel:
                     self.game_panel.draw_game_state()

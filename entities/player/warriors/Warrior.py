@@ -25,13 +25,13 @@ class Warrior:
     def warriors(warrior: str):        
         match warrior:
             case "Knight":
-                from entities.player.races.warriors.Knight import Knight
+                from entities.player.warriors.Knight import Knight
                 return Knight()
             case "Paladin":
-                from entities.player.races.warriors.Paladin import Paladin
+                from entities.player.warriors.Paladin import Paladin
                 return Paladin()
             case "Mage":
-                from entities.player.races.warriors.Mage import Mage                
+                from entities.player.warriors.Mage import Mage                
                 return Mage()
             case _: 
                 raise ValueError(f"Unknown warrior: {warrior}")

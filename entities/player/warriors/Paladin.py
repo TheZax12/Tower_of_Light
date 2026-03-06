@@ -1,5 +1,5 @@
 from entities.player.Player import Player
-from entities.player.races.warriors.Warrior import Warrior
+from entities.player.warriors.Warrior import Warrior
 from items.equipables.weapons.Spear import Spear
 
 
